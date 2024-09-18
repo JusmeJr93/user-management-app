@@ -16,6 +16,7 @@ import { FaUser } from "react-icons/fa6";
 import { FaUserEdit } from "react-icons/fa";
 import { TbLock, TbLockOpen2, TbLogout } from "react-icons/tb";
 import { RiDeleteBin2Line } from "react-icons/ri";
+import Footer from "../components/Footer";
 
 const Dashboard = () => {
   const [users, setUsers] = useState([]);
@@ -233,7 +234,7 @@ const Dashboard = () => {
         </Container>
       </Navbar>
 
-      <Container>
+      <Container className="overflow-y-auto">
         <div className="d-flex flex-column flex-lg-row justify-content-lg-between gap-4 mb-4 mt-5">
           <Form className="d-flex w-50">
             <FormControl
@@ -344,6 +345,7 @@ const Dashboard = () => {
           />
         )}
       </Container>
+      <Footer />
     </>
   );
 };
