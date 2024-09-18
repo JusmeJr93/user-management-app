@@ -11,11 +11,10 @@ import {
 } from "react-bootstrap";
 import EditUserModal from "../components/EditUserModal";
 import api from "../utils/api";
-import "./styles/dashboard.css";
 import { useNavigate } from "react-router-dom";
 import { FaUser } from "react-icons/fa6";
 import { FaUserEdit } from "react-icons/fa";
-import { TbLock, TbLockOpen2 } from "react-icons/tb";
+import { TbLock, TbLockOpen2, TbLogout } from "react-icons/tb";
 import { RiDeleteBin2Line } from "react-icons/ri";
 
 const Dashboard = () => {
@@ -122,24 +121,24 @@ const Dashboard = () => {
           user.id === updatedUser.id ? updatedUser : user
         )
       );
+
       await fetchUsers();
-
-      // Close the modal
       handleClose();
-
       setSelectedUsers([]);
     } catch (error) {
       console.error("Error updating user:", error);
     }
   };
 
-  const handleClose = () => setShowModal(false);
+  const handleClose = () => {
+    setShowModal(false);
+    setSelectedUsers([]);
+  };
 
   // block, unblock, or delete action in bulk
   const handleBulkAction = async (action) => {
     let newStatus;
 
-    // action type
     if (action === "block") {
       newStatus = "blocked";
     } else if (action === "unblock") {
@@ -147,7 +146,6 @@ const Dashboard = () => {
     }
 
     try {
-      // status change for each selected user
       if (action === "block" || action === "unblock") {
         for (const userId of selectedUsers) {
           await api.patch(`/users/${userId}/status`, { status: newStatus });
@@ -169,7 +167,6 @@ const Dashboard = () => {
           )
         );
       } else if (action === "delete") {
-        // Delete users
         for (const userId of selectedUsers) {
           await api.delete(`/users/${userId}`);
         }
@@ -213,91 +210,89 @@ const Dashboard = () => {
 
   return (
     <>
-      <Navbar
-        expand="lg"
-        className="mb-3 d-flex justify-content-center border-bottom border-light-subtle "
-      >
-        <Container className="d-flex w-100 align-items-center justify-content-between">
-          <Navbar.Brand href="#" className="fw-bold fs-4">
-            User Management Dashboard
+      <Navbar expand="lg" variant="dark" className="mb-4">
+        <Container>
+          <Navbar.Brand href="#" className="d-flex">
+            <img src="/group.png" width={50} alt="App Logo" className="me-2" />
+            <span className="fs-3  text-dark fw-bold align-self-end">
+              Dashboard
+            </span>
           </Navbar.Brand>
-          <Navbar.Toggle aria-controls="navbarScroll" />
-          <Navbar.Collapse
-            id="navbarScroll"
-            className="justify-content-between"
+          <Navbar.Text className="ms-auto fs-5 fw-bold  text-dark  align-self-end">
+            Welcome, <span className="fs-4">{userName}</span>
+          </Navbar.Text>
+          <Button
+            variant="outline-light"
+            title="Clic to Logout"
+            className="ms-3 d-flex gap-1 fs-6 mt-2"
+            onClick={handleLogout}
           >
-            <Form className="d-flex ms-auto">
-              <FormControl
-                type="search"
-                placeholder="Enter name or email"
-                className="me-2 h-25 align-self-center"
-                aria-label="Search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <Navbar.Text className="d-flex fs-5 fw-bold h-25 ms-5 align-items-center">
-                Hello,
-                <span className="text-success ms-1">{userName || "User"}</span>
-              </Navbar.Text>
-              <Button
-                variant="outline-danger"
-                className="ms-3 h-auto  align-self-center"
-                onClick={handleLogout}
-              >
-                Logout
-              </Button>
-            </Form>
-          </Navbar.Collapse>
+            <TbLogout className="align-self-center fs-5" />
+            <span className="d-flex d-none d-md-inline-block">Logout</span>
+          </Button>
         </Container>
       </Navbar>
 
       <Container>
-        <div className="d-flex justify-content-start gap-4 mb-3 mt-5">
-          <Button
-            variant="danger"
-            className="fs-5 d-flex gap-2"
-            title="Click to Block"
-            onClick={() => handleBulkAction("block")}
-            disabled={isActionDisabled}
-          >
-            Block <TbLock className="align-self-center" />
-          </Button>
-          <Button
-            variant="secondary"
-            title="Click to Unblock"
-            onClick={() => handleBulkAction("unblock")}
-            disabled={isActionDisabled}
-          >
-            <TbLockOpen2 className="fs-4" />
-          </Button>
-          <Button
-            variant="primary"
-            title="Click to Edit"
-            className="fs-5 d-flex gap-2"
-            onClick={handleEdit}
-            disabled={selectedUsers.length !== 1}
-          >
-            Edit <FaUserEdit className="align-self-center" />
-          </Button>
-          <Button
-            variant="danger"
-            title="Click to Delete"
-            onClick={() => handleBulkAction("delete")}
-            disabled={isActionDisabled}
-          >
-            <RiDeleteBin2Line className="fs-4" />
-          </Button>
+        <div className="d-flex flex-column flex-lg-row justify-content-lg-between gap-4 mb-4 mt-5">
+          <Form className="d-flex w-50">
+            <FormControl
+              type="search"
+              placeholder="Enter name or email to search a user"
+              className="me-2 py-2"
+              aria-label="Search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </Form>
+          <div className="d-flex gap-4">
+            <Button
+              variant="danger"
+              className="fs-5 d-flex gap-2"
+              title="Click to Block"
+              onClick={() => handleBulkAction("block")}
+              disabled={isActionDisabled}
+            >
+              Block <TbLock className="align-self-center" />
+            </Button>
+            <Button
+              variant="secondary"
+              title="Click to Unblock"
+              onClick={() => handleBulkAction("unblock")}
+              disabled={isActionDisabled}
+            >
+              <TbLockOpen2 className="fs-4" />
+            </Button>
+            <Button
+              variant="primary"
+              title="Click to Edit"
+              className="fs-5 d-flex gap-2"
+              onClick={handleEdit}
+              disabled={selectedUsers.length !== 1}
+            >
+              Edit <FaUserEdit className="align-self-center" />
+            </Button>
+            <Button
+              variant="danger"
+              title="Click to Delete"
+              onClick={() => handleBulkAction("delete")}
+              disabled={isActionDisabled}
+            >
+              <RiDeleteBin2Line className="fs-4" />
+            </Button>
+          </div>
         </div>
 
         {filteredUsers.length === 0 ? (
           <Alert variant="info">No users found.</Alert>
         ) : (
-          <Table striped bordered hover>
+          <Table striped bordered hover responsive className="table-hover">
             <thead>
               <tr>
                 <th>
                   <input
                     type="checkbox"
+                    title="Select / Deselect All"
                     onChange={handleSelectAll}
                     checked={selectedUsers.length === filteredUsers.length}
                   />
@@ -321,7 +316,7 @@ const Dashboard = () => {
                   </td>
                   <td className="d-flex gap-2">
                     {user.name}
-                    {currentUser.name === user.name ? (
+                    {currentUser?.email === user.email ? (
                       <FaUser className=" align-self-center text-success" />
                     ) : (
                       ""

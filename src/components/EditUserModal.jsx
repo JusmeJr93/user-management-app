@@ -32,14 +32,14 @@ const EditUserModal = ({ show, handleClose, user, onUserUpdated }) => {
   };
 
   return (
-    <Modal show={show} onHide={handleClose}>
+    <Modal show={show} onHide={handleClose} centered>
       <Modal.Header closeButton>
         <Modal.Title>Edit User</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         {error && <div className="alert alert-danger">{error}</div>}
         <Form>
-          <Form.Group controlId="formName">
+          <Form.Group controlId="formName" className="mb-4">
             <Form.Label>Name</Form.Label>
             <Form.Control
               type="text"
@@ -49,7 +49,7 @@ const EditUserModal = ({ show, handleClose, user, onUserUpdated }) => {
             />
           </Form.Group>
 
-          <Form.Group controlId="formEmail">
+          <Form.Group controlId="formEmail" className="mb-4">
             <Form.Label>Email</Form.Label>
             <Form.Control
               type="email"
@@ -59,7 +59,7 @@ const EditUserModal = ({ show, handleClose, user, onUserUpdated }) => {
             />
           </Form.Group>
 
-          <Form.Group controlId="formStatus">
+          <Form.Group controlId="formStatus" hidden>
             <Form.Label>Status</Form.Label>
             <Form.Control
               as="select"
