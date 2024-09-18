@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://localhost:5000/api'
+    // baseURL: 'http://localhost:5000/api'
+    baseURL: 'https://user-manager-b0edaffe40c2.herokuapp.com/api'
 });
 
 //attaching token to each request
