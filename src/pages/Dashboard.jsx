@@ -128,8 +128,6 @@ const Dashboard = () => {
       handleClose();
 
       setSelectedUsers([]);
-      // Optionally, re-fetch the users to ensure the data is in sync with the backend
-      // Uncomment if needed
     } catch (error) {
       console.error("Error updating user:", error);
     }
@@ -231,7 +229,7 @@ const Dashboard = () => {
             <Form className="d-flex ms-auto">
               <FormControl
                 type="search"
-                placeholder="Search by name or email"
+                placeholder="Enter name or email"
                 className="me-2 h-25 align-self-center"
                 aria-label="Search"
                 value={searchQuery}
