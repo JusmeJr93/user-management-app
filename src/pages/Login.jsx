@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import api from "../utils/api";
+import api from "../services/api";
 import { Alert, Button, Container, Form, InputGroup } from "react-bootstrap";
 import { FaEye, FaEyeSlash } from "react-icons/fa6";
 
@@ -17,7 +17,6 @@ const LoginPage = () => {
 
     try {
       const response = await api.post("/login", { email, password });
-
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("email", email);
       navigate("/admin");
@@ -54,6 +53,7 @@ const LoginPage = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
+              aria-label="Enter your email"
               required
             />
           </Form.Group>
@@ -66,6 +66,7 @@ const LoginPage = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
+                aria-label="Enter your password"
                 required
               />
               <Button

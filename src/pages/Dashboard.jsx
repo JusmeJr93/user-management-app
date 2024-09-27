@@ -1,85 +1,41 @@
-import { useEffect, useState } from "react";
-import {
-  Alert,
-  Button,
-  Container,
-  Form,
-  FormControl,
-  Navbar,
-  Spinner,
-  Table,
-} from "react-bootstrap";
-import EditUserModal from "../components/EditUserModal";
-import api from "../utils/api";
+import { useState } from "react";
+import { Alert, Container, Spinner } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import { FaUser } from "react-icons/fa6";
-import { FaUserEdit } from "react-icons/fa";
-import { TbLock, TbLockOpen2, TbLogout } from "react-icons/tb";
-import { RiDeleteBin2Line } from "react-icons/ri";
 import Footer from "../components/Footer";
+import ProfileModal from "../components/ProfileModal";
+import Header from "../components/Header";
+import SearchUser from "../components/SearchUser";
+import AdminActions from "../components/AdminActions";
+import UserTable from "../components/UserTable";
+import useFetchUsers from "../hooks/useFetchUsers";
+import useCurrentUser from "../hooks/useCurrentUser";
+import useUserSearch from "../hooks/useUserSearch";
+import useBulkActions from "../hooks/useBulkActions";
+import { updateUser } from "../services/userService";
 
 const Dashboard = () => {
-  const [users, setUsers] = useState([]);
-  const [filteredUsers, setFilteredUsers] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [selectedUsers, setSelectedUsers] = useState([]);
-  const [userName, setUserName] = useState("");
-  const [currentUser, setCurrentUser] = useState(null);
+  const { users, setUsers, loading, fetchUsers } = useFetchUsers();
+  const { currentUser, userName, isAdmin, userPhoto } = useCurrentUser(users);
+  const { searchQuery, setSearchQuery, filteredUsers, setFilteredUsers } =
+    useUserSearch(users);
+  const { selectedUsers, setSelectedUsers, handleBulkAction } = useBulkActions(
+    users,
+    setUsers,
+    setFilteredUsers,
+    currentUser,
+    handleLogout
+  );
 
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+  //for hoisting
+  function handleLogout() {
     localStorage.removeItem("token");
     localStorage.removeItem("email");
-
     navigate("/login");
-  };
-
-  useEffect(() => {
-    //fetch users from server
-    async function fetchUsers() {
-      try {
-        const response = await api.get("/users");
-        setUsers(response.data);
-        setFilteredUsers(response.data);
-
-        // Retrieve email from localStorage and find the corresponding user
-        const email = localStorage.getItem("email");
-        if (email) {
-          const user = response.data.find((u) => u.email === email);
-          if (user) {
-            setUserName(user.name.split(" ")[0]);
-            setCurrentUser(user);
-          }
-        }
-
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-        setLoading(false);
-      }
-    }
-
-    fetchUsers();
-  }, []);
-
-  //search user
-  useEffect(() => {
-    if (searchQuery) {
-      setFilteredUsers(
-        users.filter(
-          (user) =>
-            user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            user.email.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-      );
-    } else {
-      setFilteredUsers(users);
-    }
-  }, [searchQuery, users]);
+  }
 
   const handleSelectUser = (userId) => {
     setSelectedUsers((prevSelectedUsers) =>
@@ -97,106 +53,21 @@ const Dashboard = () => {
     }
   };
 
-  const fetchUsers = async () => {
-    try {
-      const response = await api.get("/users");
-      setUsers(response.data);
-      setFilteredUsers(response.data);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      setLoading(false);
-    }
-  };
-
   const handleUserUpdated = async (updatedUser) => {
     try {
-      // Update the user in the current state
-      setUsers((prevUsers) =>
-        prevUsers.map((user) =>
-          user.id === updatedUser.id ? updatedUser : user
-        )
-      );
-      setFilteredUsers((prevFilteredUsers) =>
-        prevFilteredUsers.map((user) =>
-          user.id === updatedUser.id ? updatedUser : user
-        )
-      );
-
-      await fetchUsers();
-      handleClose();
+      await updateUser(updatedUser.id, updatedUser);
+      fetchUsers();
+      setShowProfileModal(false);
       setSelectedUsers([]);
     } catch (error) {
       console.error("Error updating user:", error);
     }
   };
 
-  const handleClose = () => {
-    setShowModal(false);
-    setSelectedUsers([]);
-  };
-
-  // block, unblock, or delete action in bulk
-  const handleBulkAction = async (action) => {
-    let newStatus;
-
-    if (action === "block") {
-      newStatus = "blocked";
-    } else if (action === "unblock") {
-      newStatus = "active";
-    }
-
-    try {
-      if (action === "block" || action === "unblock") {
-        for (const userId of selectedUsers) {
-          await api.patch(`/users/${userId}/status`, { status: newStatus });
-        }
-
-        // Update local users state
-        setUsers((prevUsers) =>
-          prevUsers.map((user) =>
-            selectedUsers.includes(user.id)
-              ? { ...user, status: newStatus }
-              : user
-          )
-        );
-        setFilteredUsers((prevFilteredUsers) =>
-          prevFilteredUsers.map((user) =>
-            selectedUsers.includes(user.id)
-              ? { ...user, status: newStatus }
-              : user
-          )
-        );
-      } else if (action === "delete") {
-        for (const userId of selectedUsers) {
-          await api.delete(`/users/${userId}`);
-        }
-
-        // Remove deleted users from the local state
-        setUsers((prevUsers) =>
-          prevUsers.filter((user) => !selectedUsers.includes(user.id))
-        );
-        setFilteredUsers((prevFilteredUsers) =>
-          prevFilteredUsers.filter((user) => !selectedUsers.includes(user.id))
-        );
-      }
-
-      setSelectedUsers([]);
-
-      if (selectedUsers.includes(currentUser.id)) {
-        setTimeout(() => {
-          handleLogout();
-        }, 1000);
-      }
-    } catch (error) {
-      console.error(`Error during ${action}:`, error);
-    }
-  };
-
-  const handleEdit = () => {
+  const handleAdminEditUser = () => {
     const userToEdit = users.find((user) => selectedUsers.includes(user.id));
     setSelectedUser(userToEdit);
-    setShowModal(true);
+    setShowProfileModal(true);
   };
 
   const isActionDisabled = selectedUsers.length === 0;
@@ -211,140 +82,62 @@ const Dashboard = () => {
 
   return (
     <>
-      <Navbar expand="lg" variant="dark" className="mb-4">
-        <Container>
-          <Navbar.Brand href="#" className="d-flex">
-            <img src="/group.png" width={50} alt="App Logo" className="me-2" />
-            <span className="fs-3  text-dark fw-bold align-self-end">
-              Dashboard
-            </span>
-          </Navbar.Brand>
-          <Navbar.Text className="ms-auto fs-5 fw-bold  text-dark  align-self-end">
-            Welcome, <span className="fs-4">{userName}</span>
-          </Navbar.Text>
-          <Button
-            variant="outline-light"
-            title="Clic to Logout"
-            className="ms-3 d-flex gap-1 fs-6 mt-2"
-            onClick={handleLogout}
-          >
-            <TbLogout className="align-self-center fs-5" />
-            <span className="d-flex d-none d-md-inline-block">Logout</span>
-          </Button>
-        </Container>
-      </Navbar>
-
+      <Header
+        userData={{
+          userName,
+          userPhoto,
+          setShowProfileModal,
+          logout: handleLogout,
+        }}
+      />
       <Container className="overflow-y-auto">
         <div className="d-flex flex-column flex-lg-row justify-content-lg-between gap-4 mb-4 mt-5">
-          <Form className="d-flex w-50">
-            <FormControl
-              type="search"
-              placeholder="Enter name or email to search a user"
-              className="me-2 py-2"
-              aria-label="Search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+          <SearchUser
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+          />
+          {isAdmin && (
+            <AdminActions
+              adminActions={{
+                handleAdminEditUser,
+                selectedUsers,
+                handleBulkAction,
+                isActionDisabled,
+              }}
             />
-          </Form>
-          <div className="d-flex gap-4">
-            <Button
-              variant="danger"
-              className="fs-5 d-flex gap-2"
-              title="Click to Block"
-              onClick={() => handleBulkAction("block")}
-              disabled={isActionDisabled}
-            >
-              Block <TbLock className="align-self-center" />
-            </Button>
-            <Button
-              variant="secondary"
-              title="Click to Unblock"
-              onClick={() => handleBulkAction("unblock")}
-              disabled={isActionDisabled}
-            >
-              <TbLockOpen2 className="fs-4" />
-            </Button>
-            <Button
-              variant="primary"
-              title="Click to Edit"
-              className="fs-5 d-flex gap-2"
-              onClick={handleEdit}
-              disabled={selectedUsers.length !== 1}
-            >
-              Edit <FaUserEdit className="align-self-center" />
-            </Button>
-            <Button
-              variant="danger"
-              title="Click to Delete"
-              onClick={() => handleBulkAction("delete")}
-              disabled={isActionDisabled}
-            >
-              <RiDeleteBin2Line className="fs-4" />
-            </Button>
-          </div>
+          )}
         </div>
 
         {filteredUsers.length === 0 ? (
           <Alert variant="info">No users found.</Alert>
         ) : (
-          <Table striped bordered hover responsive className="table-hover">
-            <thead>
-              <tr>
-                <th>
-                  <input
-                    type="checkbox"
-                    title="Select / Deselect All"
-                    onChange={handleSelectAll}
-                    checked={selectedUsers.length === filteredUsers.length}
-                  />
-                </th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Last Login</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {filteredUsers.map((user) => (
-                <tr key={user.id}>
-                  <td>
-                    <input
-                      type="checkbox"
-                      checked={selectedUsers.includes(user.id)}
-                      onChange={() => handleSelectUser(user.id)}
-                    />
-                  </td>
-                  <td className="d-flex gap-2">
-                    {user.name}
-                    {currentUser?.email === user.email ? (
-                      <FaUser className=" align-self-center text-success" />
-                    ) : (
-                      ""
-                    )}
-                  </td>
-                  <td>{user.email}</td>
-                  <td>
-                    {user.last_login
-                      ? new Date(user.last_login).toLocaleString()
-                      : "Never"}
-                  </td>
-                  <td>{user.status}</td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        )}
-
-        {selectedUser && (
-          <EditUserModal
-            show={showModal}
-            handleClose={handleClose}
-            user={selectedUser}
-            onUserUpdated={handleUserUpdated}
+          <UserTable
+            tableProps={{
+              isAdmin,
+              currentUser,
+              selectedUsers,
+              filteredUsers,
+              handleSelectAll,
+              handleSelectUser,
+            }}
           />
         )}
       </Container>
+
+      {showProfileModal && (
+        <ProfileModal
+          user={selectedUser || currentUser}
+          show={showProfileModal}
+          onHide={() => {
+            selectedUser ? setSelectedUsers([]) : "";
+            setSelectedUser(null);
+            setShowProfileModal(false);
+          }}
+          onSave={handleUserUpdated}
+          isAdmin={isAdmin}
+        />
+      )}
+
       <Footer />
     </>
   );

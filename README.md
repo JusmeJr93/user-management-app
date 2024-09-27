@@ -2,35 +2,30 @@
 
 ## Project Overview
 
-This is the frontend repo of **AuthMaster**, a full-stack user management system to manage user accounts through actions such as registration, login, and updating user information. The app also features functionalities for editing, blocking, unblocking, and deleting users. This app was built with React on the frontend and Express with MySQL on the backend, showcasing various modern web development skills.
+This is the frontend repo of **AuthMaster**, a full-stack user management system to manage user accounts through functionalities like registration, login, editing user profiles, and managing user roles. Admins can also block, unblock, and delete users.
 
 You can check the Backend repo [here](https://github.com/JusmeJr93/user-management-backend).
 
 ## Key Features
 
-- **User Registration**: New Users can register by providing their name, email, and password.
-- **User Login**: Users can log in using their email and password, and a token is stored in local storage to maintain authentication.
-- **Dynamic Greeting**: After login, a dynamic greeting shows the name of the logged-in user.
-- **Dashboard**: Users can view, search, block, unblock, edit, or delete users from the dashboard.
-- **Token-Based Authentication**: JWT (JSON Web Token) is used to authenticate users and secure routes.
+- **User Registration**: New users can sign up by providing their name, email, and password, with backend validation for uniqueness.
+- **User Login & Authentication:** Secure login system using JWT, where user tokens are stored in local storage for session management.
+- **Dynamic & User Profile Pictures**: After login, a dynamic greeting shows the name of the logged-in user and display their previously upload profile picture or a default avatar.
+- **Admin Controls:** Admins have elevated privileges, including the ability to promote/demote users to admin roles, reset passwords, and perform bulk actions.
 - **Search Functionality**: Allowing the search through users by name or email.
-- **Bulk User Actions**: Users can select multiple users to block, unblock, or delete them in bulk.
+- **Bulk User Actions**: dmins can block, unblock, or delete multiple users at once via bulk actions.
 - **Responsive Design**: The interface is user-friendly, responsive and optimized for various screen sizes using Bootstrap and custom styling.
 
 ## Technologies Used
 
 - **Vite**: Build tool for fast development.
 - **React**: The core frontend framework.
-- **React Router**: For managing navigation within the application.
-- **Bootstrap**: For responsive and reusable UI components.
-- **React-Bootstrap**: Bootstrap components built specifically for React.
+- **React Router**: Handles client-side routing for a seamless single-page application experience.
+- **Bootstrap & React-Bootstrap:** Responsive, reusable UI components, integrated with custom CSS for styling.
 - **Axios**: For making HTTP requests to the backend API.
-- **React Icons**: Icons used for buttons and other UI elements.
-- **Heroku**: For the deployment of the NodeJs-ExpressJs backend with the JawsDB add-on for MySQL.
-- **JWT (JSON Web Token)**: For secure authentication.
-- **cors**: middleware package to handle CORS (Cross-Origin Resource Sharing).
-- **CSS & Bootstrap**: For custom styles and layouts.
+- **React Icons**: For icon set used throughout the UI.
+- **CSS Custom Styles**: Additional styles for branding and enhanced user experience.
 
 ## Deployment
 
-The app is deployed on Vercel. Check it out: [AuthMaster by Junior Jusmé](https://authmaster-user-management.vercel.app/).
+The app is deployed on Vercel. You can access it here: [AuthMaster by Junior Jusmé](https://authmaster-user-management.vercel.app/).

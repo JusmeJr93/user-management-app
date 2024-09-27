@@ -1,16 +1,20 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import api from "../utils/api";
+import api from "../services/api";
 import { Container, Form, Button, Alert, InputGroup } from "react-bootstrap";
 import { FaEye, FaEyeSlash } from "react-icons/fa6";
+import { getPasswordStrength } from "../utils/passwordStrength";
+import { PiSealWarningFill } from "react-icons/pi";
 
 const RegistrationPage = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordStrength, setPasswordStrength] = useState(0);
   const [error, setError] = useState(null);
-
   const [showPassword, setShowPassword] = useState(false);
+  const [showRequirements, setShowRequirements] = useState(false);
+
   const navigate = useNavigate();
 
   const handleRegister = async (e) => {
@@ -27,6 +31,29 @@ const RegistrationPage = () => {
         err.response?.data?.message || "An error occurred during registration."
       );
     }
+  };
+
+  const handlePasswordChange = (e) => {
+    const newPassword = e.target.value;
+    setPassword(newPassword);
+    setPasswordStrength(getPasswordStrength(newPassword));
+  };
+
+  const passwordStrengthIndicator = () => {
+    const strengthLabels = ["Weak", "Fair", "Good", "Strong", "Very Strong"];
+    const strengthColors = ["red", "orange", "#f0cc01", "#09d457", "green"];
+    const strengthLabel = strengthLabels[passwordStrength - 1];
+
+    return (
+      <div
+        className="fw-bold mt-1 ms-1"
+        style={{
+          color: strengthColors[passwordStrength - 1],
+        }}
+      >
+        {strengthLabel}
+      </div>
+    );
   };
 
   return (
@@ -53,6 +80,7 @@ const RegistrationPage = () => {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter your name"
+              aria-label="Enter your name"
               required
             />
           </Form.Group>
@@ -64,18 +92,39 @@ const RegistrationPage = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
+              aria-label="Enter your email"
               required
             />
           </Form.Group>
 
           <Form.Group className="mb-4">
-            <Form.Label>Password</Form.Label>
+            <Form.Label className="">
+              Password
+              <span
+                role="button"
+                onClick={() => setShowRequirements(!showRequirements)}
+                className="mt-2"
+              >
+                <PiSealWarningFill
+                  title={
+                    showRequirements ? "Hide requirements" : "Show requirements"
+                  }
+                  className="fs-5 ms-2 text-warning"
+                />
+              </span>
+            </Form.Label>
+            {showRequirements && (
+              <p className="text-warning fst-italic">
+                Min. 6 chars, lowercase, uppercase, numbers, symbols.
+              </p>
+            )}
             <InputGroup>
               <Form.Control
                 type={showPassword ? "text" : "password"}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={handlePasswordChange}
                 placeholder="Enter your password"
+                aria-label="Enter your password"
                 required
               />
               <Button
@@ -87,6 +136,7 @@ const RegistrationPage = () => {
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </Button>
             </InputGroup>
+            {passwordStrengthIndicator()}
           </Form.Group>
 
           <p className="fw-bold">
